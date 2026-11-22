@@ -349,7 +349,7 @@ function buildCharacters() {
 
   // Odo the dealer, standing at the left end of the table, in frame.
   odo = makePerson({ skin: '#d9a06a', hair: '#8a8a8a', shirt: '#1d6b6b', pants: '#222', hat: false });
-  odo.position.set(-5.3, 0, 1.2);
+  odo.position.set(-6.6, 0, 1.0);
   odo.rotation.y = Math.PI / 2 - 0.35;
   // Dealer legs.
   const legL = cyl(0.11, 0.1, 0.95, '#222');
