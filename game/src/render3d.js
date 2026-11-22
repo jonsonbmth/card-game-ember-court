@@ -205,7 +205,8 @@ function makePerson({ skin = '#e8b98a', hair = '#3a2410', shirt = '#7b4fd0', pan
     new THREE.PlaneGeometry(0.52, 0.52),
     new THREE.MeshBasicMaterial({ map: faceTex, transparent: true }),
   );
-  add(g, face, 0, 1.76, 0.3);
+  // Just outside the head sphere (radius 0.34) so the eyes are visible.
+  add(g, face, 0, 1.76, 0.36);
   g.userData.head = head;
   g.userData.face = face;
   return g;
@@ -372,7 +373,7 @@ function buildCharacters() {
     }
     const thumb = cyl(0.05, 0.045, 0.28, '#e8b98a');
     add(hand, thumb, side * 0.24, 0, 0.18, 0.5, 0, side * 0.9);
-    hand.position.set(side * 1.15, 1.46, 3.6);
+    hand.position.set(side * 4.9, 1.46, 3.3);
     hand.rotation.y = side * -0.2;
     group.add(hand);
   }
@@ -415,7 +416,7 @@ export function handSlots(n) {
   for (let i = 0; i < n; i += 1) {
     const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
     slots.push({
-      pos: [t * 1.35, 2.2 + Math.abs(t) * 0.1, 3.9],
+      pos: [t * 4.2, 2.2 + Math.abs(t) * 0.1, 3.9],
       rot: [-1.02, 0, -t * 0.14],
     });
   }
@@ -427,8 +428,9 @@ function foeSlots(n) {
   for (let i = 0; i < n; i += 1) {
     const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
     slots.push({
-      pos: [t * 1.15, 1.66 + Math.abs(t) * 0.05, -2.95],
-      rot: [-1.5, 0, t * 0.12],
+      pos: [t * 2.4, 1.66 + Math.abs(t) * 0.05, -2.95],
+      // Leaning back past flat so the camera sees the card BACKS.
+      rot: [-2.12, 0, t * 0.12],
     });
   }
   return slots;
