@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember Court — a 3D card duel</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1208; font-family: Georgia, 'Times New Roman', serif; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .hud { position: fixed; z-index: 10; color: #f7ead0; pointer-events: none; }
+  .panel { background: rgba(16, 10, 26, 0.82); border: 1px solid #c9a227; border-radius: 10px; padding: 10px 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); }
+  .gold { color: #ffd75e; }
+  .bar { height: 12px; border-radius: 6px; background: #3a2a1a; overflow: hidden; border: 1px solid #7a5c1e; }
+  .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #e23b3b, #ff7a3c); }
+  .bar.mana > i { background: linear-gradient(90deg, #2f7fe0, #6fd3ff); }
+  .bar.shield > i { background: linear-gradient(90deg, #3f9be0, #aee6ff); }
+  #topbar { top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 16px; padding: 8px 16px;
+    background: linear-gradient(180deg, rgba(20,12,4,0.92), rgba(20,12,4,0.55) 80%, transparent); }
+  #topbar h1 { margin: 0; font-size: 26px; letter-spacing: 3px; color: #ffd75e; text-shadow: 0 2px 8px #000; }
+  #topbar .sub { font-size: 13px; color: #e8d9b0; }
+  #topbar .right { margin-left: auto; display: flex; gap: 22px; font-size: 14px; }
+  #topbar .right b { color: #ffd75e; font-size: 18px; }
+  #foe { top: 64px; left: 14px; width: 268px; }
+  #me { top: 64px; right: 14px; width: 268px; }
+  #foe h2, #me h2 { margin: 0 0 2px; font-size: 17px; color: #ffd75e; }
+  #foe .role, #me .role { font-size: 12px; color: #cdbd8f; margin-bottom: 8px; }
+  .row { display: flex; justify-content: space-between; font-size: 13px; margin: 3px 0; }
+  #intent { margin-top: 8px; padding: 7px 9px; border-radius: 7px; background: #3d1a4d; border: 1px solid #b06fd6;
+    font-size: 14px; color: #f0d8ff; }
+  #intent b { color: #ffd75e; }
+  #combo { margin-top: 8px; font-size: 13px; color: #ffe9a8; }
+  #combo .pip { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; }
+  #bottombar { bottom: 0; left: 0; right: 0; display: flex; align-items: center; gap: 14px; padding: 8px 16px;
+    background: linear-gradient(0deg, rgba(20,12,4,0.92), rgba(20,12,4,0.55) 80%, transparent); font-size: 13px; }
+  #bottombar kbd { background: #3a2a1a; border: 1px solid #c9a227; border-radius: 4px; padding: 1px 6px; color: #ffd75e; font-family: inherit; }
+  #endturn { pointer-events: auto; margin-left: auto; font-family: inherit; font-size: 17px; font-weight: bold; letter-spacing: 1px;
+    color: #1a1208; background: linear-gradient(180deg, #ffe08a, #e0a92e); border: 2px solid #fff2c0; border-radius: 10px;
+    padding: 9px 22px; cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.6); }
+  #endturn:hover { filter: brightness(1.12); }
+  #endturn:disabled { filter: grayscale(0.7) brightness(0.75); cursor: default; }
+  #banner { top: 38%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-size: 44px; letter-spacing: 6px;
+    color: #ffd75e; text-shadow: 0 0 24px rgba(255, 180, 40, 0.8), 0 3px 6px #000; opacity: 0; transition: opacity 0.25s; }
+  #banner small { display: block; font-size: 17px; letter-spacing: 2px; color: #fff3cf; margin-top: 6px; }
+  #overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+    background: rgba(10, 6, 2, 0.45); }
+  #overlay .card { text-align: center; background: rgba(24, 14, 4, 0.94); border: 2px solid #c9a227; border-radius: 16px;
+    padding: 30px 44px; max-width: 620px; box-shadow: 0 10px 50px rgba(0,0,0,0.7); }
+  #overlay h1 { margin: 0 0 4px; font-size: 52px; letter-spacing: 6px; color: #ffd75e; text-shadow: 0 3px 10px #000; }
+  #overlay h2 { margin: 0 0 10px; font-size: 30px; color: #ffd75e; letter-spacing: 2px; }
+  #overlay p { color: #f0e2bd; font-size: 15px; line-height: 1.55; margin: 8px 0; }
+  #overlay .rules { text-align: left; font-size: 14px; }
+  #overlay .rules b { color: #ffd75e; }
+  #playbtn { pointer-events: auto; font-family: inherit; font-size: 21px; font-weight: bold; letter-spacing: 2px;
+    color: #1a1208; background: linear-gradient(180deg, #ffe08a, #e0a92e); border: 2px solid #fff2c0; border-radius: 12px;
+    padding: 12px 34px; cursor: pointer; margin-top: 12px; }
+  #playbtn:hover { filter: brightness(1.12); }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  #toast { bottom: 64px; left: 50%; transform: translateX(-50%); font-size: 20px; font-weight: bold; letter-spacing: 2px;
+    color: #ffe9a8; text-shadow: 0 2px 6px #000; opacity: 0; transition: opacity 0.2s; }
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="Ember Court: a 3D card duel against Mara, the Ember Duchess"></canvas>
+
+<div id="topbar" class="hud">
+  <h1>EMBER COURT</h1>
+  <span class="sub">A duel of suits &middot; first to 0 life loses</span>
+  <div class="right">
+    <span>TURN <b id="turn-num">1</b></span>
+    <span>DECK <b id="deck-count">27</b></span>
+    <span>DRAW PILE <b id="foe-deck">27</b></span>
+  </div>
+</div>
+
+<div id="foe" class="hud panel">
+  <h2>MARA &mdash; THE EMBER DUCHESS</h2>
+  <div class="role">Rival duelist &middot; reads your hand, answers in kind</div>
+  <div class="row"><span>Life</span><b><span id="foe-life">30</span> / 30</b></div>
+  <div class="bar"><i id="foe-life-bar" style="width:100%"></i></div>
+  <div class="row"><span>Shield</span><b id="foe-shield">0</b></div>
+  <div class="bar shield"><i id="foe-shield-bar" style="width:0%"></i></div>
+  <div id="intent">Mara plans: <b>—</b></div>
+</div>
+
+<div id="me" class="hud panel">
+  <h2>YOU &mdash; THE CHALLENGER</h2>
+  <div class="role">Play cards, chain a suit, break the Duchess</div>
+  <div class="row"><span>Life</span><b><span id="me-life">30</span> / 30</b></div>
+  <div class="bar"><i id="me-life-bar" style="width:100%"></i></div>
+  <div class="row"><span>Shield</span><b id="me-shield">0</b></div>
+  <div class="bar shield"><i id="me-shield-bar" style="width:0%"></i></div>
+  <div class="row"><span>Mana</span><b><span id="me-mana">1</span> / <span id="me-mana-max">1</span></b></div>
+  <div class="bar mana"><i id="me-mana-bar" style="width:10%"></i></div>
+  <div id="combo"></div>
+</div>
+
+<div id="banner" class="hud"></div>
+<div id="toast" class="hud"></div>
+
+<div id="bottombar" class="hud">
+  <span><kbd>1&ndash;5</kbd> play a card &nbsp; <kbd>Click</kbd> a card to play it</span>
+  <span><kbd>Space</kbd> end turn</span>
+  <span><kbd>M</kbd> sound on/off</span>
+  <span>Suits: <b style="color:#ff6b5e">Flame</b> &middot; <b style="color:#6fb7ff">Tide</b> &middot; <b style="color:#7ddb6a">Leaf</b> &middot; <b style="color:#c98aff">Storm</b> &mdash; two of a suit in one turn triggers a combo</span>
+  <button id="endturn">END TURN</button>
+</div>
+
+<div id="overlay">
+  <div class="card" id="overlay-card"></div>
+</div>
+
+<p id="status" role="status" aria-live="polite"></p>
+<script src="./vendor/three.min.js"></script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
