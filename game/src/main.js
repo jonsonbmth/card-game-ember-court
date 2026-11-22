@@ -130,6 +130,7 @@ function onMute() {
 }
 
 function loop() {
+  if (state) syncHands(state);
   renderFrame(1 / 60);
   requestAnimationFrame(loop);
 }
@@ -162,19 +163,19 @@ function boot() {
   if (shot) {
     const { state: staged, screen } = stageShot(shot, seedParam);
     state = staged;
+    hideOverlay();
+    intent = chooseIntent(state);
+    showIntent(intent);
     if (screen === 'title') {
       showTitle(() => {});
       // Keep the title overlay visible for the cover shot.
-      showBanner('EMBER COURT', 'A duel of suits in the golden hall');
     } else if (screen === 'win') {
       winBurst();
+      // A second burst so gold is still falling when the shot is taken.
+      setTimeout(() => winBurst(), 3800);
       setTimeout(() => showEnd(state, () => {}), 600);
     } else if (screen === 'loss') {
       setTimeout(() => showEnd(state, () => {}), 600);
-    } else {
-      intent = chooseIntent(state);
-      showIntent(intent);
-      showBanner('YOUR TURN', 'Turn 4 · the duel is heating up');
     }
     refresh();
     loop();

@@ -5,7 +5,7 @@
 // loaded as a classic script (window.THREE) from game/vendor/.
 import { makeCardFace, makeCardBack, CARD_W, CARD_H } from './cards.js';
 
-const CARD_SCALE = 0.0098; // canvas px -> world units (256px ≈ 2.5u wide)
+const CARD_SCALE = 0.0082; // canvas px -> world units (256px ≈ 2.1u wide)
 const CARD_WU = CARD_W * CARD_SCALE; // ≈ 2.51
 const CARD_HU = CARD_H * CARD_SCALE; // ≈ 3.76
 
@@ -89,8 +89,8 @@ function skyTexture() {
     };
     cloud(w * 0.3, h * 0.3, 1); cloud(w * 0.68, h * 0.48, 0.8); cloud(w * 0.25, h * 0.62, 0.9);
     ctx.fillStyle = '#2f7a3d';
-    ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(0, h * 0.82);
-    ctx.lineTo(w * 0.4, h * 0.72); ctx.lineTo(w * 0.7, h * 0.8); ctx.lineTo(w, h * 0.74); ctx.lineTo(w, h); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(0, h * 0.94);
+    ctx.lineTo(w * 0.4, h * 0.88); ctx.lineTo(w * 0.7, h * 0.92); ctx.lineTo(w, h * 0.88); ctx.lineTo(w, h); ctx.fill();
   });
 }
 
@@ -169,13 +169,13 @@ function makePerson({ skin = '#e8b98a', hair = '#3a2410', shirt = '#7b4fd0', pan
     ? cyl(0.42, 0.62, 1.5, shirt, { roughness: 0.7 })
     : box(0.78, 0.95, 0.42, shirt);
   add(g, torso, 0, 0.95, 0);
-  // Arms reaching toward the table.
+  // Arms reaching toward the table, tucked close to the body.
   const armL = cyl(0.09, 0.08, 0.85, shirt);
-  add(g, armL, -0.48, 1.05, 0.18, -1.0, 0, 0.25);
+  add(g, armL, -0.48, 1.05, 0.1, -0.55, 0, 0.25);
   const armR = cyl(0.09, 0.08, 0.85, shirt);
-  add(g, armR, 0.48, 1.05, 0.18, -1.0, 0, -0.25);
-  add(g, sphere(0.09, skin), -0.62, 0.72, 0.5);
-  add(g, sphere(0.09, skin), 0.62, 0.72, 0.5);
+  add(g, armR, 0.48, 1.05, 0.1, -0.55, 0, -0.25);
+  add(g, sphere(0.09, skin), -0.55, 0.78, 0.3);
+  add(g, sphere(0.09, skin), 0.55, 0.78, 0.3);
   // Head + hair + face.
   const head = sphere(0.34, skin);
   add(g, head, 0, 1.78, 0);
@@ -330,9 +330,11 @@ function buildTable() {
 
 function buildCharacters() {
   const group = new THREE.Group();
-  // Mara, seated across the table, facing the camera.
+  // Mara, seated across the table, facing the camera — big enough
+  // to read at thumbnail size: crown, face and violet robe.
   mara = makePerson({ skin: '#f0c49a', hair: '#6a1a12', shirt: '#7b4fd0', robe: true, crown: true });
-  mara.position.set(0, 0, -5.4);
+  mara.position.set(0, 0, -4.8);
+  mara.scale.setScalar(1.5);
   mara.rotation.y = 0;
   // Chair for Mara.
   const chair = new THREE.Group();
@@ -340,13 +342,13 @@ function buildCharacters() {
   add(chair, box(1.3, 1.5, 0.16, '#4a2e0e'), 0, 1.3, -0.5);
   add(chair, box(0.16, 0.55, 1.1, '#4a2e0e'), -0.6, 0.28, 0);
   add(chair, box(0.16, 0.55, 1.1, '#4a2e0e'), 0.6, 0.28, 0);
-  chair.position.set(0, 0, -5.9);
+  chair.position.set(0, 0, -5.35);
   group.add(chair);
   group.add(mara);
 
   // Odo the dealer, standing at the left end of the table.
   odo = makePerson({ skin: '#d9a06a', hair: '#8a8a8a', shirt: '#1d6b6b', pants: '#222', hat: false });
-  odo.position.set(-6.2, 0, 0.4);
+  odo.position.set(-5.9, 0, 0.6);
   odo.rotation.y = Math.PI / 2 - 0.35;
   // Dealer legs.
   const legL = cyl(0.11, 0.1, 0.95, '#222');
@@ -413,8 +415,8 @@ export function handSlots(n) {
   for (let i = 0; i < n; i += 1) {
     const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
     slots.push({
-      pos: [t * 1.55, 2.05 + Math.abs(t) * 0.12, 3.55],
-      rot: [-1.02, 0, -t * 0.16],
+      pos: [t * 1.35, 2.2 + Math.abs(t) * 0.1, 3.9],
+      rot: [-1.02, 0, -t * 0.14],
     });
   }
   return slots;
@@ -425,8 +427,8 @@ function foeSlots(n) {
   for (let i = 0; i < n; i += 1) {
     const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
     slots.push({
-      pos: [t * 1.35, 2.0 + Math.abs(t) * 0.1, -3.35],
-      rot: [-2.12, 0, t * 0.14],
+      pos: [t * 1.15, 1.66 + Math.abs(t) * 0.05, -2.95],
+      rot: [-1.5, 0, t * 0.12],
     });
   }
   return slots;
@@ -445,9 +447,9 @@ export function initRenderer(canvas) {
   scene.background = new THREE.Color('#f2d8a0');
   scene.fog = new THREE.Fog('#f2d8a0', 26, 46);
 
-  camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 7.7, 12.0);
-  camera.lookAt(0, 0.8, -1.4);
+  camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 9.4, 15.2);
+  camera.lookAt(0, 0.2, -1.2);
 
   scene.add(new THREE.HemisphereLight('#cfe8ff', '#8a6a3a', 1.15));
   const sun = new THREE.DirectionalLight('#ffe6b0', 2.0);
@@ -470,11 +472,12 @@ export function initRenderer(canvas) {
   fxGroup = new THREE.Group();
   scene.add(playerHandGroup, foeHandGroup, playGroup, fxGroup);
 
-  // Deck piles at the table corners.
+  // Deck piles at the table corners: small stacked slabs that read
+  // as card decks, not bricks.
   for (const [dx, dz] of [[4.35, 2.3], [-4.35, -2.3]]) {
-    for (let i = 0; i < 6; i += 1) {
-      const slab = box(CARD_WU * 0.92, 0.05, CARD_HU * 0.62, i % 2 ? '#7a1a12' : '#8a2a1a');
-      add(scene, slab, dx, 1.46 + i * 0.055, dz, 0, 0.12, 0);
+    for (let i = 0; i < 8; i += 1) {
+      const slab = box(CARD_WU * 0.62, 0.045, CARD_HU * 0.42, i % 2 ? '#7a1a12' : '#8a2a1a');
+      add(scene, slab, dx, 1.44 + i * 0.05, dz, 0, 0.12 + (i % 3) * 0.02, 0);
       slab.rotation.x = 0;
     }
   }
@@ -627,7 +630,7 @@ export function renderFrame(dt) {
     odo.rotation.y = Math.PI / 2 - 0.35 + Math.sin(t * 0.3) * 0.06;
   }
   camera.position.x = Math.sin(t * 0.12) * 0.22;
-  camera.lookAt(0, 0.8, -1.4);
+  camera.lookAt(0, 0.2, -1.2);
   if (dust) {
     dust.rotation.y = t * 0.01;
     dust.position.y = Math.sin(t * 0.25) * 0.15;
