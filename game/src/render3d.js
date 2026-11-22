@@ -347,9 +347,9 @@ function buildCharacters() {
   group.add(chair);
   group.add(mara);
 
-  // Odo the dealer, standing at the left end of the table.
+  // Odo the dealer, standing at the left end of the table, in frame.
   odo = makePerson({ skin: '#d9a06a', hair: '#8a8a8a', shirt: '#1d6b6b', pants: '#222', hat: false });
-  odo.position.set(-5.9, 0, 0.6);
+  odo.position.set(-5.3, 0, 1.2);
   odo.rotation.y = Math.PI / 2 - 0.35;
   // Dealer legs.
   const legL = cyl(0.11, 0.1, 0.95, '#222');
@@ -362,21 +362,9 @@ function buildCharacters() {
   add(odo, box(0.24, 0.05, 0.04, '#5a3a1a'), 0, 1.66, 0.32);
   group.add(odo);
 
-  // The player's hands resting at the near edge of the table.
-  for (const side of [-1, 1]) {
-    const hand = new THREE.Group();
-    const palm = box(0.42, 0.14, 0.6, '#e8b98a');
-    add(hand, palm, 0, 0, 0);
-    for (let f = 0; f < 4; f += 1) {
-      const finger = cyl(0.05, 0.045, 0.34, '#e8b98a');
-      add(hand, finger, -0.15 + f * 0.1, 0, 0.42, Math.PI / 2 - 0.25, 0, 0);
-    }
-    const thumb = cyl(0.05, 0.045, 0.28, '#e8b98a');
-    add(hand, thumb, side * 0.24, 0, 0.18, 0.5, 0, side * 0.9);
-    hand.position.set(side * 4.9, 1.46, 3.3);
-    hand.rotation.y = side * -0.2;
-    group.add(hand);
-  }
+  // (The player's hands were tried resting on the near edge, but the
+  // fanned hand hides them from this camera; the cards themselves are
+  // the player's presence in the foreground.)
   return group;
 }
 
